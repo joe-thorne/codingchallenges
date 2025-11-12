@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define BYTE 1
 #define LINE 2
@@ -27,30 +28,39 @@ typedef struct Parameters {
 } Parameters;
 
 // Prototypes
-Parameters processCommandLine(int argc, char* argv[], CommandLine* command); 
+Parameters processCommandLine(int argc, char* argv[]); 
+int countBytes(FILE* file);
 
 int main(int argc, char* argv[]) {
+  int numBytes;
   // check command line
-  Parameters params = processCommandLine(argc, argv, &params);
+  Parameters params = processCommandLine(argc, argv);
   // open file
-    
-  // read/count
+  FILE* handle = fopen(params.filename, "r");
+  if (!handle) {
+    // Unable to open file
+    fprintf(stderr, "Unable to open \"%s\" \n" , params.filename);
+    exit(2);
+  } else {
+
+    if (params.outputs & BYTE) {
+      numBytes = countBytes(handle);
+    }
+    printf("  %i %s", numBytes, params.filename);
+  }  
   
   // output
   return 0;
 }
 
-Parameters processCommandLine(int argc, char* argv[], Parameters* params) {
-
-  Parameters params {
+Parameters processCommandLine(int argc, char* argv[]) {
+  Parameters params = {
     .outputs = 0,
     .filename = NULL
   };
-
   // Skip program name
   argc--;
   argv++;
-
   while (argv[0] && strncmp(argv[0], "-", 1) == 0) {
     // current argument begins with '-'
     if (!strcmp(argv[0], byteArg)) {
@@ -66,10 +76,18 @@ Parameters processCommandLine(int argc, char* argv[], Parameters* params) {
     argc--;
     argv++;
   }
-
   if (argv[0]) {
     params.filename = argv[0];
   }
-
   return params;
 } 
+
+int countBytes(FILE* file) {
+  int count = 0;
+  char nextChar = fgetc(file);
+  while (nextChar != EOF) {
+    count++;
+    nextChar = fgetc(file);
+  }
+  return count;
+}
