@@ -1,0 +1,30 @@
+# Compiled object files
+*.o
+*.out
+
+# Executables
+a.out # Default output name for GCC/Clang on macOS if not specified
+
+# Editor/IDE specific files
+.vscode/ # Visual Studio Code settings
+.idea/ # IntelliJ IDEA settings
+
+# macOS specific files
+.DS_Store
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build directories
+build/
+bin/
+obj/
+log/
+
+# Other temporary or log files
+*.log
+*.tmp
+*.bak
+*.swp
+
