@@ -1,7 +1,7 @@
 # Compiled object files
 *.o
 *.out
-
+ccwc
 # Executables
 a.out # Default output name for GCC/Clang on macOS if not specified
 
