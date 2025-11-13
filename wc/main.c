@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <wchar.h>
 
 #define BYTE   1
 #define LINE   2
@@ -112,6 +113,7 @@ Counts count(FILE* file) {
   };
 
   // count bytes
+  char inWord = 0;
   char nextChar = fgetc(file);
   while (nextChar != EOF) {
     counts.byteCount++;
@@ -123,6 +125,12 @@ Counts count(FILE* file) {
   }
 
   rewind(file);
+  
+  wchar_t wc = fgetwc(file);
+  while (wc != EOF) {
+    counts.charCount++;
+    wc = fgetwc(file);
+  }
 
   return counts;
 }
