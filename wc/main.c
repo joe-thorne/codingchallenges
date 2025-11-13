@@ -7,11 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
-#define BYTE 1
-#define LINE 2
-#define WORD 4
-#define CHAR 8
+#define BYTE   1
+#define LINE   2
+#define WORD   4
+#define CHAR   8
+#define EMPTY  7
 
 const char* const byteArg = "-c";
 const char* const lineArg = "-l";
@@ -27,29 +29,43 @@ typedef struct Parameters {
   char* filename;
 } Parameters;
 
+typedef struct Counts {
+  unsigned long byteCount;
+  unsigned long lineCount;
+  unsigned long wordCount;
+  unsigned long charCount;
+} Counts;
+
 // Prototypes
 Parameters processCommandLine(int argc, char* argv[]); 
-int countBytes(FILE* file);
+Counts count(FILE* file);
 
 int main(int argc, char* argv[]) {
-  int numBytes;
+  setlocale(LC_ALL, "");
+
   // check command line
   Parameters params = processCommandLine(argc, argv);
+
   // open file
   FILE* handle = fopen(params.filename, "r");
   if (!handle) {
     // Unable to open file
     fprintf(stderr, "Unable to open \"%s\" \n" , params.filename);
     exit(2);
-  } else {
+  } 
 
-    if (params.outputs & BYTE) {
-      numBytes = countBytes(handle);
-    }
-    printf("  %i %s", numBytes, params.filename);
-  }  
+  Counts counts = count(handle);
   
   // output
+  if (params.outputs & LINE) printf("  %lu", counts.lineCount);
+  if (params.outputs & WORD) printf("  %lu", counts.wordCount);
+  if (params.outputs & BYTE) printf("  %lu", counts.byteCount);
+  if (params.outputs & CHAR) printf("  %lu", counts.charCount);
+  if (params.filename) {
+    printf("  %s\n", params.filename);
+  } else {
+    printf("\n");
+  }
   return 0;
 }
 
@@ -76,18 +92,37 @@ Parameters processCommandLine(int argc, char* argv[]) {
     argc--;
     argv++;
   }
+
+  if (!params.outputs) {
+    params.outputs = EMPTY;
+  }
+
   if (argv[0]) {
     params.filename = argv[0];
   }
+
   return params;
 } 
 
-int countBytes(FILE* file) {
-  int count = 0;
+Counts count(FILE* file) {
+  Counts counts = {.byteCount =0,
+    .lineCount = 0,
+    .wordCount =0,
+    .charCount = 0
+  };
+
+  // count bytes
   char nextChar = fgetc(file);
   while (nextChar != EOF) {
-    count++;
+    counts.byteCount++;
+    if (nextChar == '\n') {
+      counts.lineCount++;
+    }
     nextChar = fgetc(file);
+
   }
-  return count;
+
+  rewind(file);
+
+  return counts;
 }
