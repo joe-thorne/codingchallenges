@@ -57,12 +57,12 @@ int main(int argc, char* argv[]) {
   Counts counts = count(handle);
   
   // output
-  if (params.outputs & LINE) printf("  %lu", counts.lineCount);
-  if (params.outputs & WORD) printf("  %lu", counts.wordCount);
-  if (params.outputs & BYTE) printf("  %lu", counts.byteCount);
-  if (params.outputs & CHAR) printf("  %lu", counts.charCount);
+  if (params.outputs & LINE) printf(" %7lu", counts.lineCount);
+  if (params.outputs & WORD) printf(" %7lu", counts.wordCount);
+  if (params.outputs & BYTE) printf(" %7lu", counts.byteCount);
+  if (params.outputs & CHAR) printf(" %7lu", counts.charCount);
   if (params.filename) {
-    printf("  %s\n", params.filename);
+    printf(" %7s\n", params.filename);
   } else {
     printf("\n");
   }
