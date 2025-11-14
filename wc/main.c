@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
 
   Counts counts = count(handle);
   
+  // TODO: Should be a function
   // output
   if (params.outputs & LINE) printf(" %7lu", counts.lineCount);
   if (params.outputs & WORD) printf(" %7lu", counts.wordCount);
@@ -71,6 +72,7 @@ int main(int argc, char* argv[]) {
 }
 
 Parameters processCommandLine(int argc, char* argv[]) {
+  // TODO: use getopt to do this better
   Parameters params = {
     .outputs = 0,
     .filename = NULL
@@ -98,6 +100,7 @@ Parameters processCommandLine(int argc, char* argv[]) {
     params.outputs = EMPTY;
   }
 
+  // TODO: stdin if no file
   if (argv[0]) {
     params.filename = argv[0];
   }
@@ -124,6 +127,8 @@ Counts count(FILE* file) {
 
   }
 
+  // TODO: Put this behind conditional
+  // CL arg info out of scope at the moment
   rewind(file);
   
   wchar_t wc = fgetwc(file);
