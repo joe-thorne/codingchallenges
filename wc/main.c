@@ -48,9 +48,14 @@ int main(int argc, char* argv[]) {
   // check command line
   Parameters params = {0};
   processCommandLine(argc, argv, &params);
+  FILE* handle;
+  // open file or divert stdin
+  if (params.filename){
+    handle = fopen(params.filename, "r");
+  } else {
+    handle = stdin;
+  }
 
-  // open file
-  FILE* handle = fopen(params.filename, "r");
   if (!handle) {
     // Unable to open file
     fprintf(stderr, "Unable to open \"%s\" \n" , params.filename);
@@ -74,8 +79,6 @@ int main(int argc, char* argv[]) {
 }
 
 void processCommandLine(int argc, char* argv[], Parameters* params) {
-  // TODO: use getopt to do this better
-  
   int ch;
 
   while ((ch = getopt(argc, argv, "clwm")) != -1) {
@@ -97,6 +100,7 @@ void processCommandLine(int argc, char* argv[], Parameters* params) {
         exit(1);
     }
   }
+
   // no args means "-clw"
   if (!params->outputs) {
     params->outputs = EMPTY;
@@ -123,19 +127,26 @@ Counts count(FILE* file) {
     if (nextChar == '\n') {
       counts.lineCount++;
     }
+    if (isspace(nextChar)) {
+      if (inWord) {
+        inWord = 0;
+      } 
+    } else {
+      if (!inWord) {
+        inWord = 1;
+        counts.wordCount++;
+      }
+    }
     nextChar = fgetc(file);
-
   }
 
   // TODO: Put this behind conditional
   // CL arg info out of scope at the moment
   rewind(file);
-  
   wchar_t wc = fgetwc(file);
   while (wc != EOF) {
     counts.charCount++;
     wc = fgetwc(file);
   }
-
   return counts;
 }
