@@ -29,18 +29,15 @@ const char* const noFileMessage = "To be implemented, for now you must specify a
 typedef struct Parameters {
   unsigned char outputs;
   char* filename;
-} Parameters;
-
-typedef struct Counts {
   unsigned long byteCount;
   unsigned long lineCount;
   unsigned long wordCount;
   unsigned long charCount;
-} Counts;
+} Parameters;
 
 // Prototypes
 void processCommandLine(int argc, char* argv[], Parameters* params); 
-Counts count(FILE* file);
+void count(FILE* file, Parameters* params);
 
 int main(int argc, char* argv[]) {
   setlocale(LC_ALL, "");
@@ -62,14 +59,14 @@ int main(int argc, char* argv[]) {
     exit(2);
   } 
 
-  Counts counts = count(handle);
+  count(handle, &params);
   
   // TODO: Should be a function
   // output
-  if (params.outputs & LINE) printf(" %7lu", counts.lineCount);
-  if (params.outputs & WORD) printf(" %7lu", counts.wordCount);
-  if (params.outputs & BYTE) printf(" %7lu", counts.byteCount);
-  if (params.outputs & CHAR) printf(" %7lu", counts.charCount);
+  if (params.outputs & LINE) printf(" %7lu", params.lineCount);
+  if (params.outputs & WORD) printf(" %7lu", params.wordCount);
+  if (params.outputs & BYTE) printf(" %7lu", params.byteCount);
+  if (params.outputs & CHAR) printf(" %7lu", params.charCount);
   if (params.filename) {
     printf(" %7s\n", params.filename);
   } else {
@@ -106,26 +103,19 @@ void processCommandLine(int argc, char* argv[], Parameters* params) {
     params->outputs = EMPTY;
   }
 
-  // TODO: stdin if no file
   if (argv[optind]) {
     params->filename = argv[optind];
   }
 } 
 
-Counts count(FILE* file) {
-  Counts counts = {.byteCount =0,
-    .lineCount = 0,
-    .wordCount =0,
-    .charCount = 0
-  };
-
+void count(FILE* file, Parameters* params) {
   // count bytes
   char inWord = 0;
   char nextChar = fgetc(file);
   while (nextChar != EOF) {
-    counts.byteCount++;
+    params->byteCount++;
     if (nextChar == '\n') {
-      counts.lineCount++;
+      params->lineCount++;
     }
     if (isspace(nextChar)) {
       if (inWord) {
@@ -134,19 +124,18 @@ Counts count(FILE* file) {
     } else {
       if (!inWord) {
         inWord = 1;
-        counts.wordCount++;
+        params->wordCount++;
       }
     }
     nextChar = fgetc(file);
   }
 
-  // TODO: Put this behind conditional
-  // CL arg info out of scope at the moment
-  rewind(file);
-  wchar_t wc = fgetwc(file);
-  while (wc != EOF) {
-    counts.charCount++;
-    wc = fgetwc(file);
+  if (params->outputs | CHAR) {
+    rewind(file);
+    wchar_t wc = fgetwc(file);
+    while (wc != EOF) {
+      params->charCount++;
+      wc = fgetwc(file);
+    }
   }
-  return counts;
 }
