@@ -9,6 +9,7 @@
 #include <string.h>
 #include <locale.h>
 #include <wchar.h>
+#include <unistd.h>
 
 #define BYTE   1
 #define LINE   2
@@ -38,14 +39,15 @@ typedef struct Counts {
 } Counts;
 
 // Prototypes
-Parameters processCommandLine(int argc, char* argv[]); 
+void processCommandLine(int argc, char* argv[], Parameters* params); 
 Counts count(FILE* file);
 
 int main(int argc, char* argv[]) {
   setlocale(LC_ALL, "");
 
   // check command line
-  Parameters params = processCommandLine(argc, argv);
+  Parameters params = {0};
+  processCommandLine(argc, argv, &params);
 
   // open file
   FILE* handle = fopen(params.filename, "r");
@@ -71,41 +73,39 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-Parameters processCommandLine(int argc, char* argv[]) {
+void processCommandLine(int argc, char* argv[], Parameters* params) {
   // TODO: use getopt to do this better
-  Parameters params = {
-    .outputs = 0,
-    .filename = NULL
-  };
-  // Skip program name
-  argc--;
-  argv++;
-  while (argv[0] && strncmp(argv[0], "-", 1) == 0) {
-    // current argument begins with '-'
-    if (!strcmp(argv[0], byteArg)) {
-      params.outputs = params.outputs | BYTE;
-    } else if (!strcmp(argv[0], lineArg)) {
-      params.outputs = params.outputs | LINE;
-    } else if (!strcmp(argv[0], wordArg)) {
-      params.outputs = params.outputs | WORD;
-    } else if (!strcmp(argv[0], charArg)) {
-      params.outputs = params.outputs | CHAR;
-    }
-    // Skip one argument
-    argc--;
-    argv++;
-  }
+  
+  int ch;
 
-  if (!params.outputs) {
-    params.outputs = EMPTY;
+  while ((ch = getopt(argc, argv, "clwm")) != -1) {
+    switch (ch) {
+      case 'c':
+        params->outputs |= BYTE;
+        break;
+      case 'l':
+        params->outputs |= LINE;
+        break;
+      case 'w':
+        params->outputs |= WORD;
+        break;
+      case 'm':
+        params->outputs |= CHAR;
+        break;
+      default:
+        printf("Error reading from CL, exiting");
+        exit(1);
+    }
+  }
+  // no args means "-clw"
+  if (!params->outputs) {
+    params->outputs = EMPTY;
   }
 
   // TODO: stdin if no file
-  if (argv[0]) {
-    params.filename = argv[0];
+  if (argv[optind]) {
+    params->filename = argv[optind];
   }
-
-  return params;
 } 
 
 Counts count(FILE* file) {
