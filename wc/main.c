@@ -17,15 +17,6 @@
 #define CHAR   8
 #define EMPTY  7
 
-const char* const byteArg = "-c";
-const char* const lineArg = "-l";
-const char* const wordArg = "-w";
-const char* const charArg = "-m";
-
-// Constants and Data structures
-const char* const countBytesArg = "-c";
-const char* const noFileMessage = "To be implemented, for now you must specify a filename\n";
-
 typedef struct Parameters {
   unsigned char outputs;
   char* filename;
@@ -35,49 +26,8 @@ typedef struct Parameters {
   unsigned long charCount;
 } Parameters;
 
-// Prototypes
-void processCommandLine(int argc, char* argv[], Parameters* params); 
-void count(FILE* file, Parameters* params);
-
-int main(int argc, char* argv[]) {
-  setlocale(LC_ALL, "");
-
-  // check command line
-  Parameters params = {0};
-  processCommandLine(argc, argv, &params);
-  FILE* handle;
-  // open file or divert stdin
-  if (params.filename){
-    handle = fopen(params.filename, "r");
-  } else {
-    handle = stdin;
-  }
-
-  if (!handle) {
-    // Unable to open file
-    fprintf(stderr, "Unable to open \"%s\" \n" , params.filename);
-    exit(2);
-  } 
-
-  count(handle, &params);
-  
-  // TODO: Should be a function
-  // output
-  if (params.outputs & LINE) printf(" %7lu", params.lineCount);
-  if (params.outputs & WORD) printf(" %7lu", params.wordCount);
-  if (params.outputs & BYTE) printf(" %7lu", params.byteCount);
-  if (params.outputs & CHAR) printf(" %7lu", params.charCount);
-  if (params.filename) {
-    printf(" %7s\n", params.filename);
-  } else {
-    printf("\n");
-  }
-  return 0;
-}
-
 void processCommandLine(int argc, char* argv[], Parameters* params) {
   int ch;
-
   while ((ch = getopt(argc, argv, "clwm")) != -1) {
     switch (ch) {
       case 'c':
@@ -97,19 +47,16 @@ void processCommandLine(int argc, char* argv[], Parameters* params) {
         exit(1);
     }
   }
-
   // no args means "-clw"
   if (!params->outputs) {
     params->outputs = EMPTY;
   }
-
   if (argv[optind]) {
     params->filename = argv[optind];
   }
 } 
 
 void count(FILE* file, Parameters* params) {
-  // count bytes
   char inWord = 0;
   char nextChar = fgetc(file);
   while (nextChar != EOF) {
@@ -139,3 +86,34 @@ void count(FILE* file, Parameters* params) {
     }
   }
 }
+
+int main(int argc, char* argv[]) {
+  setlocale(LC_ALL, "");
+  Parameters params = {0};
+  processCommandLine(argc, argv, &params);
+  FILE* handle;
+
+  if (params.filename){
+    handle = fopen(params.filename, "r");
+  } else {
+    handle = stdin;
+  }
+  if (!handle) {
+    fprintf(stderr, "Unable to open \"%s\" \n" , params.filename);
+    exit(2);
+  } 
+  count(handle, &params);
+  
+  // TODO: Should be a function
+  if (params.outputs & LINE) printf(" %7lu", params.lineCount);
+  if (params.outputs & WORD) printf(" %7lu", params.wordCount);
+  if (params.outputs & BYTE) printf(" %7lu", params.byteCount);
+  if (params.outputs & CHAR) printf(" %7lu", params.charCount);
+  if (params.filename) {
+    printf(" %7s\n", params.filename);
+  } else {
+    printf("\n");
+  }
+  return 0;
+}
+
